@@ -1,0 +1,10 @@
+backend/.idea/
+backend/node_modules
+backend/package.json
+backend/package-lock.json
+frontend/.idea/
+frontend/node_modules
+frontend/README.ms
+frontend/package-lock.json
+frontend/package.json
+
