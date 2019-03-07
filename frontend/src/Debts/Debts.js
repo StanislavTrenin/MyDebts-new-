@@ -32,7 +32,7 @@ class Debts extends Component {
     }
 
     handleShow(id) {
-        this.state.id =id;
+        this.setState({id: id});
         this.setState({ show: true });
     }
 

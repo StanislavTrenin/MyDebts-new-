@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import Button from 'react-bootstrap/Button';
-import {Redirect, withRouter} from "react-router-dom";
+import {Redirect} from "react-router-dom";
 
 
 class Tmp extends Component {
@@ -28,6 +28,7 @@ class Tmp extends Component {
 
     render() {
         if (this.state.show) {
+            console.log('redirect to debts list');
             return <Redirect to={{pathname: this.state.redirectTo}}/>
         } else {
             return (

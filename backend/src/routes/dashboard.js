@@ -3,7 +3,8 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
-const cookieParser = require('cookie-parser');
+const auth = require('../libs/auth');
+//const cookieParser = require('cookie-parser');
 
 const verifyJWT_MW  = require('../middleware');
 
@@ -16,9 +17,6 @@ const connection = mysql.createConnection({
     database: 'debts_db'
 });
 const app = express();
-
-
-
 app.use(bodyParser.urlencoded({
     extended: false
 }));
@@ -26,18 +24,59 @@ app.use(helmet());
 app.use(bodyParser.json());
 app.use(cors());
 app.use(morgan('combined'));
-app.use(cookieParser());
+const router = express.Router();
+
+
+app.use(router);
+
+
+router.post('/login', (req, res) => {
+    console.log('user login with jwt');
+    let {email, password} = req.body;
+    console.log('email = '+email+' password = '+password);
+
+    connection.query('SELECT user_id, login, email FROM users WHERE login = '+email+' AND password = '+password, function (err, rows) {
+        if (err) {
+            console.log('Error while performing Query.');
+        } else {
+            console.log('Res of sql = '+JSON.stringify(rows));
+
+            let  data = JSON.stringify(rows);
+
+            if (email === '123' && password === '123') {
+                res.status(200)
+                    .json({
+                        success: true,
+                        token: auth.createJWToken({
+                            sessionData: data,
+                            maxAge: 3600
+                        })
+                    })
+            } else {
+                res.status(401)
+                    .json({
+                        message: err || "Validation failed. Given email and password aren't matching."
+                    })
+            }
+
+        }
+    });
+
+
+
+});
 
 app.all('*', verifyJWT_MW);
 
-app.get('/', (req, res) =>
+/*app.get('/', (req, res) =>
 {
+    console.log('in secret');
     res.status(200)
         .json({
             success: true,
             data: "Super secret data!"
         })
-});
+});*/
 
 app.get('/', (req, res, next) => {
     console.log('!!!List of Debts should be protected!!!');
@@ -57,7 +96,7 @@ app.get('/', (req, res, next) => {
 });
 
 
-app.post('/', (req, res) => {
+/*app.post('/', (req, res) => {
     const {person_id, sum, description, is_borrow} = req.body;
     const newDebt = [person_id, sum, description, is_borrow];
     console.log('Put: ', newDebt);
@@ -67,9 +106,9 @@ app.post('/', (req, res) => {
         }
     });
     res.status(200).send();
-});
+});*/
 
-app.post('/login', (req, res) => {
+/*app.post('/login', (req, res) => {
     console.log('user login');
 
     const login = req.body.login;
@@ -87,9 +126,9 @@ app.post('/login', (req, res) => {
     });
     //req.session.login = req.body.login;
     res.end()
-});
+});*/
 
-app.post('/signup', (req, res) => {
+/*app.post('/signup', (req, res) => {
     console.log('user signup');
     const {login, email, password} = req.body;
     const newUser = [login, email, password];
@@ -115,5 +154,5 @@ app.post('/close/:id', (req, res) => {
     res.status(200).send();
     //res.redirect('back');
 });
-
+*/
 module.exports = app;

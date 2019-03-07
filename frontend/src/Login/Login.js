@@ -34,7 +34,7 @@ class Login extends Component {
         console.log('handle submit ' + this.state.login + ' ' + this.state.password);
         axios
             .post('http://192.168.33.10:8081/login', {
-                login: this.state.login,
+                email: this.state.login,
                 password: this.state.password
             })
             .then(response => {
@@ -42,7 +42,7 @@ class Login extends Component {
                 console.log(response);
                 if (response.status === 200) {
                     // update App.js state
-                    //alert('yes!!!');
+                    alert('yes!!!');
                     /*this.props.updateUser({
                         loggedIn: true,
                         login: response.data.login
@@ -60,10 +60,10 @@ class Login extends Component {
     };
 
     render() {
-        /*if (this.state.redirectTo) {
-            //alert('lol');
+        if (this.state.redirectTo) {
+            alert('lol');
             return <Redirect to={{pathname: this.state.redirectTo}}/>
-        } else {*/
+        } else {
 
             return (
                 <Container>
@@ -110,7 +110,7 @@ class Login extends Component {
                 </Container>
             );
         }
-    //}
+    }
 }
 
 export default Login
