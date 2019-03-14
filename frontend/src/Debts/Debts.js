@@ -20,7 +20,9 @@ class Debts extends Component {
     }
 
     async componentDidMount() {
-        const questions = (await axios.get('http://192.168.33.10:8081/')).data;
+        const questions = (await axios.get('http://192.168.33.10:8081/', {
+            token: localStorage.getItem('token')
+        })).data;
         this.setState({
             questions,
         });

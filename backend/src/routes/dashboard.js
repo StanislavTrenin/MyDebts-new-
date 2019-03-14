@@ -22,12 +22,14 @@ app.use(bodyParser.urlencoded({
 }));
 app.use(helmet());
 app.use(bodyParser.json());
+app.use(bodyParser.json({ type: 'application/vnd.api+json' }));
 app.use(cors());
 app.use(morgan('combined'));
 const router = express.Router();
 
 
 app.use(router);
+
 
 
 router.post('/login', (req, res) => {
@@ -44,14 +46,13 @@ router.post('/login', (req, res) => {
             let  data = JSON.stringify(rows);
 
             if (email === '123' && password === '123') {
-                res.status(200)
-                    .json({
-                        success: true,
-                        token: auth.createJWToken({
-                            sessionData: data,
-                            maxAge: 3600
-                        })
-                    })
+                auth.createJWToken({sessionData: data, maxAge: 3600}).then((result) => {
+                    //const token = req.token;
+                    console.log('after log in created token = '+result);
+                    res.status(200).json({success: true, token: result});
+                });
+
+
             } else {
                 res.status(401)
                     .json({
@@ -60,13 +61,46 @@ router.post('/login', (req, res) => {
             }
 
         }
+
     });
+
+
 
 
 
 });
 
-app.all('*', verifyJWT_MW);
+/*app.post('/debts', function (req,res,next) {
+    console.log('get token '+req.body.token)
+
+});*/
+
+/*app.get('/', function (req, res) {
+    console.log('on main page with params');
+    let page = req.query.page;
+    let limit = req.query.limit;
+    console.log('page = '+page+' limit = '+limit);
+
+});*/
+
+app.all('*', (req, res, next) =>{
+    console.log('there ');
+    let token = req.body.token;
+    //let token = (req.method === 'POST') ? req.body.token : req.query.token;
+    //let token = req.query.token;
+    console.log('token = '+token);
+    auth.verifyJWTToken(token)
+        .then((decodedToken) => {
+            console.log('success!!!');
+            req.user = decodedToken.data;
+            next()
+        })
+        .catch((err) => {
+            res.status(400)
+                .json({message: "Invalid auth token provided."})
+        })
+
+});
 
 /*app.get('/', (req, res) =>
 {
@@ -78,7 +112,7 @@ app.all('*', verifyJWT_MW);
         })
 });*/
 
-app.get('/', (req, res, next) => {
+router.get('/', (req, res, next) => {
     console.log('!!!List of Debts should be protected!!!');
     connection.query('SELECT * from debts', function (err, rows, fields) {
         if (!err) {

@@ -5,7 +5,7 @@ import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import axios from 'axios'
-import {NavLink, Redirect} from "react-router-dom";
+import {NavLink, Redirect, Route} from "react-router-dom";
 
 
 class Login extends Component {
@@ -15,7 +15,8 @@ class Login extends Component {
         this.state = {
             login: "",
             password: "",
-            redirectTo: null
+            redirectTo: null,
+            data: null
         };
     }
 
@@ -42,15 +43,20 @@ class Login extends Component {
                 console.log(response);
                 if (response.status === 200) {
                     // update App.js state
-                    alert('yes!!!');
+                    //alert('yes!!!');
                     /*this.props.updateUser({
                         loggedIn: true,
                         login: response.data.login
                     });*/
                     // update the state to redirect to home
                     this.setState({
-                        redirectTo: '/debts'
-                    })
+                        redirectTo: '/debts/:token',
+                        data: {token: response.data.token}
+                    });
+                    localStorage.setItem('loggedIn', 'true');
+                    localStorage.setItem('token', response.data.token);
+                    console.log('login');
+                    console.log('loggedIn = '+localStorage.getItem('loggedIn'));
                 }
             }).catch(error => {
             console.log('login error: ');
@@ -60,10 +66,13 @@ class Login extends Component {
     };
 
     render() {
-        if (this.state.redirectTo) {
-            alert('lol');
-            return <Redirect to={{pathname: this.state.redirectTo}}/>
-        } else {
+        //if (this.state.redirectTo) {
+            //alert('lol');
+            //console.log('redirect to '+this.state.redirectTo+''+this.state.data);
+            //return <Redirect to={this.state.redirectTo+''+this.state.data}/>
+            //return <Route path = '/debts/:token' component={this.state.token}  />
+            //return <Redirect to={{pathname: '/deb'}}/>
+        //} else {
 
             return (
                 <Container>
@@ -110,7 +119,7 @@ class Login extends Component {
                 </Container>
             );
         }
-    }
+    //}
 }
 
 export default Login

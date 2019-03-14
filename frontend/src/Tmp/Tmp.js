@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import Button from 'react-bootstrap/Button';
 import {Redirect} from "react-router-dom";
+import axios from "axios";
 
 
 class Tmp extends Component {
@@ -20,10 +21,24 @@ class Tmp extends Component {
     handleShow = event =>{
         event.preventDefault();
         this.setState({show: true});
-        this.setState({
-            redirectTo: '/debts'
-        })
 
+
+        axios
+            .post('http://192.168.33.10:8081/debts', {
+                token: localStorage.getItem('token')
+            }).then(response => {
+            console.log('debts response: ');
+            console.log(response);
+
+        }).catch(error => {
+            console.log('debts error: ');
+            console.log(error);
+
+        });
+        this.setState({
+            //redirectTo: '/debts?token='+localStorage.getItem('token')
+            redirectTo: '/debts'
+        });
     };
 
     render() {
