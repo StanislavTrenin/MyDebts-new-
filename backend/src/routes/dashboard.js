@@ -6,7 +6,7 @@ const morgan = require('morgan');
 const auth = require('../libs/auth');
 //const cookieParser = require('cookie-parser');
 
-const verifyJWT_MW  = require('../middleware');
+const verifyJWT_MW = require('../middleware');
 
 
 const mysql = require('mysql');
@@ -22,7 +22,7 @@ app.use(bodyParser.urlencoded({
 }));
 app.use(helmet());
 app.use(bodyParser.json());
-app.use(bodyParser.json({ type: 'application/vnd.api+json' }));
+app.use(bodyParser.json({type: 'application/vnd.api+json'}));
 app.use(cors());
 app.use(morgan('combined'));
 const router = express.Router();
@@ -31,41 +31,34 @@ const router = express.Router();
 app.use(router);
 
 
-
 router.post('/login', (req, res) => {
     console.log('user login with jwt');
     let {email, password} = req.body;
-    console.log('email = '+email+' password = '+password);
+    console.log('email = ' + email + ' password = ' + password);
 
-    connection.query('SELECT user_id, login, email FROM users WHERE login = '+email+' AND password = '+password, function (err, rows) {
+    connection.query('SELECT user_id, login, email FROM users WHERE login = ' + email + ' AND password = ' + password, function (err, rows) {
         if (err) {
             console.log('Error while performing Query.');
         } else {
-            console.log('Res of sql = '+JSON.stringify(rows));
 
-            let  data = JSON.stringify(rows);
+            if(rows.length == 1) {
+                console.log('Res of sql = ' + JSON.stringify(rows));
 
-            if (email === '123' && password === '123') {
+                let data = JSON.stringify(rows);
+
                 auth.createJWToken({sessionData: data, maxAge: 3600}).then((result) => {
                     //const token = req.token;
-                    console.log('after log in created token = '+result);
+                    console.log('after log in created token = ' + result);
                     res.status(200).json({success: true, token: result});
                 });
 
-
             } else {
-                res.status(401)
-                    .json({
-                        message: err || "Validation failed. Given email and password aren't matching."
-                    })
+                console.log('User does not exist!!!');
+                res.status(400).json({message: "User does not exist!!!"})
             }
-
         }
 
     });
-
-
-
 
 
 });
@@ -83,19 +76,21 @@ router.post('/login', (req, res) => {
 
 });*/
 
-app.all('*', (req, res, next) =>{
+app.all('*', (req, res, next) => {
     console.log('there ');
     let token = req.body.token;
     //let token = (req.method === 'POST') ? req.body.token : req.query.token;
     //let token = req.query.token;
-    console.log('token = '+token);
+    console.log('token = ' + token);
     auth.verifyJWTToken(token)
         .then((decodedToken) => {
             console.log('success!!!');
             req.user = decodedToken.data;
-            next()
+            //next()
+            res.status(200).json('all ok');
         })
         .catch((err) => {
+            console.log(err);
             res.status(400)
                 .json({message: "Invalid auth token provided."})
         })
@@ -126,8 +121,8 @@ router.get('/', (req, res, next) => {
     });
 
 
-
 });
+
 
 
 /*app.post('/', (req, res) => {

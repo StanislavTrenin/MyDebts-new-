@@ -16,9 +16,11 @@ class Login extends Component {
             login: "",
             password: "",
             redirectTo: null,
-            data: null
+            data: null,
+            showError: 'hidden'
         };
     }
+
 
     validateForm() {
         return this.state.login.length > 0 && this.state.password.length > 0;
@@ -49,30 +51,55 @@ class Login extends Component {
                         login: response.data.login
                     });*/
                     // update the state to redirect to home
-                    this.setState({
-                        redirectTo: '/debts/:token',
-                        data: {token: response.data.token}
-                    });
                     localStorage.setItem('loggedIn', 'true');
                     localStorage.setItem('token', response.data.token);
                     console.log('login');
-                    console.log('loggedIn = '+localStorage.getItem('loggedIn'));
+                    console.log('loggedIn = ' + localStorage.getItem('loggedIn'));
+                    this.setState({
+                        redirectTo: '/debts',
+                        data: {token: response.data.token}
+                    });
                 }
             }).catch(error => {
             console.log('login error: ');
             console.log(error);
 
+
+                this.setState({
+                    showError: 'visible'
+                });
+
+            axios.post('http://192.168.33.10:8081/debts', {
+                token: localStorage.getItem('token')
+            }).then(response => {
+                console.log('debts response: ');
+                console.log(response);
+
+            }).catch(error => {
+                console.log('debts error: ');
+                console.log(error);
+
+            });
+
+
         })
     };
 
     render() {
-        //if (this.state.redirectTo) {
+        let loginError = <div style={{color: '#b32400', visibility: this.state.showError }}>
+            Incorrect login or username!!!
+        </div>;
+
+
+        if (this.state.redirectTo) {
+            console.log('redirect to debts list');
+            return <Redirect to={{pathname: this.state.redirectTo}}/>
             //alert('lol');
             //console.log('redirect to '+this.state.redirectTo+''+this.state.data);
             //return <Redirect to={this.state.redirectTo+''+this.state.data}/>
             //return <Route path = '/debts/:token' component={this.state.token}  />
             //return <Redirect to={{pathname: '/deb'}}/>
-        //} else {
+        } else {
 
             return (
                 <Container>
@@ -109,9 +136,11 @@ class Login extends Component {
                                         </Button>
                                     </Col>
                                 </Row>
+                                {loginError}
                                 <NavLink to="/signup">
                                     Sign up
                                 </NavLink>
+
                             </Form>
                         </Col>
                         <Col></Col>
@@ -119,7 +148,7 @@ class Login extends Component {
                 </Container>
             );
         }
-    //}
+    }
 }
 
 export default Login
