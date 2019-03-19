@@ -69,7 +69,7 @@ class Login extends Component {
                     showError: 'visible'
                 });
 
-            axios.post('http://192.168.33.10:8081/debts', {
+            /*axios.post('http://192.168.33.10:8081/debts', {
                 token: localStorage.getItem('token')
             }).then(response => {
                 console.log('debts response: ');
@@ -79,7 +79,7 @@ class Login extends Component {
                 console.log('debts error: ');
                 console.log(error);
 
-            });
+            });*/
 
 
         })

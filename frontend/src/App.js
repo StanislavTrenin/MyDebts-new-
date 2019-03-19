@@ -68,26 +68,10 @@ class App extends Component {
         return (
 
             <div>
-                {/*<div className="links">
-                    <Link to="/" className="link">
-                        Home
-                    </Link>
-                    <Link to="/profile" className="link">
-                        Profile
-                    </Link>
-                    <button onClick={this.handleLogin}>Login</button>
-                </div>
-                <div className="tabs">
-                    {error && <div>ERROR: {error}</div>}
-                    <Switch>
-                        <Route path="/" exact component={Home}/>
-                        <PrivateRoute path="/profile" component={Profile}/>
-                    </Switch>
-                </div>*/}
                 <div className="tabs">
                     {error && <div>ERROR: {error}</div>}
                     <NavBar/>
-                    <Route exact path='/' component={Login}/>
+                    <Route exact path='/login' component={Login}/>
                     <PrivateRoute exact path='lend' component={Lend}/>
                     <PrivateRoute exact path='/debts' component={Debts}/>
                     <Route exact path='/borrow/' component={Borrow}/>

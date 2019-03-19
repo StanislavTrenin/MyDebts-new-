@@ -1,4 +1,6 @@
+require('dotenv').config();
 const app = require('./routes/index').dashboard;
+
 //const auth = require('./routes/index').auth;
 //app.use(auth);
 

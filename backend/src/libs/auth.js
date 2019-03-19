@@ -1,8 +1,11 @@
+require('dotenv').config();
 const jwt = require('jsonwebtoken');
 const _ = require('lodash');
 
+
+
 function verifyJWTToken(token) {
-    console.log('lets vetify jwt'+token);
+    console.log('lets verify jwt '+token);
     return new Promise((resolve, reject) => {
         jwt.verify(token, process.env.JWT_SECRET, (err, decodedToken) => {
             if (err || !decodedToken) {
@@ -26,7 +29,8 @@ async function createJWToken(details) {
             details.maxAge = 3600
         }
 
-        const secret = 'TOPSECRETTTTT';
+        //console.log(process.env.JWT_SECRET);
+        const secret = process.env.JWT_SECRET;
         let now = Math.floor(Date.now() / 1000),
             iat = (now - 10),
             jwtId = Math.random().toString(36).substring(7);

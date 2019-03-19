@@ -86,8 +86,8 @@ app.all('*', (req, res, next) => {
         .then((decodedToken) => {
             console.log('success!!!');
             req.user = decodedToken.data;
-            //next()
-            res.status(200).json('all ok');
+            next()
+            //res.status(200).json('all ok');
         })
         .catch((err) => {
             console.log(err);
@@ -107,7 +107,7 @@ app.all('*', (req, res, next) => {
         })
 });*/
 
-router.get('/', (req, res, next) => {
+app.post('/debts', (req, res, next) => {
     console.log('!!!List of Debts should be protected!!!');
     connection.query('SELECT * from debts', function (err, rows, fields) {
         if (!err) {
@@ -157,7 +157,7 @@ router.get('/', (req, res, next) => {
     res.end()
 });*/
 
-/*app.post('/signup', (req, res) => {
+router.post('/signup', (req, res) => {
     console.log('user signup');
     const {login, email, password} = req.body;
     const newUser = [login, email, password];
@@ -171,7 +171,7 @@ router.get('/', (req, res, next) => {
     res.end()
 });
 
-
+/*
 app.post('/close/:id', (req, res) => {
     const id = req.body.id;
     console.log('Close: ', id);
