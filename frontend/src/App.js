@@ -10,6 +10,8 @@ import Lend from './Lend/Lend';
 import Borrow from './Borrow/Borrow';
 import Login from './Login/Login';
 import Signup from './Signup/Signup';
+import Contacts from './Contacts/Contacts';
+import Statistic from './Statistic/Statistic';
 import Tmp from './Tmp/Tmp';
 
 function isUserAuthenticated() {
@@ -47,7 +49,7 @@ class App extends Component {
 
     constructor(props) {
         super(props);
-        localStorage.setItem('loggedIn', 'false');
+        //localStorage.setItem('loggedIn', 'false');
         isUserAuthenticated() ? (console.log('auth1')) : (console.log('fail1'));
 
 
@@ -72,11 +74,13 @@ class App extends Component {
                     {error && <div>ERROR: {error}</div>}
                     <NavBar/>
                     <Route exact path='/login' component={Login}/>
-                    <PrivateRoute exact path='lend' component={Lend}/>
-                    <PrivateRoute exact path='/debts' component={Debts}/>
-                    <Route exact path='/borrow/' component={Borrow}/>
                     <Route exact path='/signup' component={Signup}/>
-                    <Route exact path='/' component={Tmp}/>
+                    <PrivateRoute exact path='/debts' component={Debts}/>
+                    <PrivateRoute exact path='/lend' component={Lend}/>
+                    <PrivateRoute exact path='/borrow' component={Borrow}/>
+                    <PrivateRoute exact path='/statistic' component={Statistic}/>
+                    <PrivateRoute exact path='/contacts' component={Contacts}/>
+                    <div>Some picture here</div>
                 </div>
             </div>
         );

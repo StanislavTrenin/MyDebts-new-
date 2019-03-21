@@ -1,8 +1,10 @@
 import React, {Component} from 'react';
 import {withRouter} from 'react-router-dom';
 import axios from 'axios';
+import Select from 'react-select';
 
-class Borrow extends Component {
+
+class Lend extends Component {
     constructor(props) {
         super(props);
 
@@ -20,11 +22,11 @@ class Borrow extends Component {
         });
     }
 
-    updatePersonId(value) {
+    updatePersonId = (selectedOption) => {
         this.setState({
-            person_id: value,
+            person_id: selectedOption.value,
         });
-    }
+    };
 
     updateSum(value) {
         this.setState({
@@ -32,20 +34,40 @@ class Borrow extends Component {
         });
     }
 
+    async componentDidMount() {
+        console.log('find contacts with token = '+localStorage.getItem('token'));
+        const contacts = (await axios.post('http://192.168.33.10:8081/contacts', {
+            token: localStorage.getItem('token'),
+            id: localStorage.getItem('id')
+        })).data;
+
+
+        this.setState({
+            contacts: contacts.map(contact => ({label: contact.contact_name, value: contact.id}))
+        });
+
+        //const contact_names = contacts.map((contact) => contact.contact_name);
+
+        console.log('my contacts = '+this.state.contacts);
+
+
+    }
 
     async submit() {
         this.setState({
             disabled: true,
         });
 
-        await axios.post('http://192.168.33.10:8081', {
+        await axios.post('http://192.168.33.10:8081/takeMoney', {
+            token: localStorage.getItem('token'),
+            creator_id: localStorage.getItem('id'),
             person_id: this.state.person_id,
             sum: this.state.sum,
             description: this.state.description,
             is_borrow: 1,
         });
 
-        this.props.history.push('/');
+        this.props.history.push('/debts');
     }
 
     render() {
@@ -58,15 +80,12 @@ class Borrow extends Component {
                             <div className="card-body text-left">
                                 <div className="form-group">
                                     <label htmlFor="exampleInputEmail1">Person:</label>
-                                    <input
-                                        disabled={this.state.disabled}
-                                        type="text"
-                                        onBlur={(e) => {
-                                            this.updatePersonId(e.target.value)
-                                        }}
-                                        className="form-control"
-                                        placeholder="Give more context to your question."
+
+                                    <Select
+                                        options={this.state.contacts}
+                                        onChange={this.updatePersonId}
                                     />
+
                                 </div>
                                 <div className="form-group">
                                     <label htmlFor="exampleInputEmail1">Sum:</label>
@@ -77,7 +96,6 @@ class Borrow extends Component {
                                             this.updateSum(e.target.value)
                                         }}
                                         className="form-control"
-                                        placeholder="Give your question a title."
                                     />
                                 </div>
                                 <div className="form-group">
@@ -89,7 +107,6 @@ class Borrow extends Component {
                                             this.updateDescription(e.target.value)
                                         }}
                                         className="form-control"
-                                        placeholder="Give more context to your question."
                                     />
                                 </div>
                                 <button
@@ -109,4 +126,4 @@ class Borrow extends Component {
     }
 }
 
-export default withRouter(Borrow);
+export default withRouter(Lend);

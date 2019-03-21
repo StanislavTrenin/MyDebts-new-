@@ -48,6 +48,9 @@ class NavBar extends Component {
                             DebtsApp
                         </NavLink>
                         <div>
+                            <NavLink className="navbar-brand" to="/debts">
+                                MyDebts
+                            </NavLink>
                             <NavLink className="navbar-brand" to="/lend">
                                 Lend
                             </NavLink>
@@ -57,8 +60,8 @@ class NavBar extends Component {
                             <NavLink className="navbar-brand" to="/statistic">
                                 Statistic
                             </NavLink>
-                            <NavLink className="navbar-brand" to="/add_person">
-                                Add Person
+                            <NavLink className="navbar-brand" to="/contacts">
+                                Contacts
                             </NavLink>
                             {signOut}
                         </div>

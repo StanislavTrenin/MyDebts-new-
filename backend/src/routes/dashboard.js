@@ -49,7 +49,7 @@ router.post('/login', (req, res) => {
                 auth.createJWToken({sessionData: data, maxAge: 3600}).then((result) => {
                     //const token = req.token;
                     console.log('after log in created token = ' + result);
-                    res.status(200).json({success: true, token: result});
+                    res.status(200).json({success: true, token: result, id: rows[0].user_id});
                 });
 
             } else {
@@ -108,8 +108,7 @@ app.all('*', (req, res, next) => {
 });*/
 
 app.post('/debts', (req, res, next) => {
-    console.log('!!!List of Debts should be protected!!!');
-    connection.query('SELECT * from debts', function (err, rows, fields) {
+    connection.query('SELECT * from debts WHERE creator_id = '+req.body.id, function (err, rows, fields) {
         if (!err) {
             console.log('The solution is: ', rows);
             //const qs = rows;
@@ -123,19 +122,61 @@ app.post('/debts', (req, res, next) => {
 
 });
 
+app.post('/contacts', (req, res, next) => {
+    connection.query('SELECT * from contacts WHERE creator_id = '+req.body.id, function (err, rows, fields) {
+        if (!err) {
+            console.log('The solution is: ', rows);
+            //const qs = rows;
+            res.send(rows);
+        }
+        else {
+            console.log('Error while performing Query.');
+        }
+    });
 
 
-/*app.post('/', (req, res) => {
-    const {person_id, sum, description, is_borrow} = req.body;
-    const newDebt = [person_id, sum, description, is_borrow];
+});
+
+app.post('/getStat', (req, res, next) => {
+    connection.query('SELECT SUM(sum) AS lend FROM debts WHERE creator_id = '+req.body.creator_id+' AND person_id = '+req.body.person_id+' AND is_borrow = 0', function (err, rows, fields) {
+        if (!err) {
+            console.log('lend: ', rows[0].lend);
+            const lend = (rows[0].lend === null ? 0 : rows[0].lend);
+            //const qs = rows;
+            connection.query('SELECT SUM(sum) as borrow FROM debts WHERE creator_id = '+req.body.creator_id+' AND person_id = '+req.body.person_id+' AND is_borrow = 1', function (err, rows1, fields) {
+                if (!err) {
+                    console.log('borrow: ', rows1[0].borrow);
+                    //const qs = rows;
+                    const borrow = (rows1[0].borrow === null ? 0 : rows1[0].borrow);
+                    console.log('lend and borrow: '+ lend+' '+borrow);
+                    res.send({lend: lend, borrow: borrow});
+                }
+                else {
+                    console.log('Error while performing Query.');
+                }
+            });
+        }
+        else {
+            console.log('Error while performing Query.');
+        }
+    });
+
+
+});
+
+
+
+app.post('/takeMoney', (req, res) => {
+    //const {token, creator_id, person_id, sum, description, is_borrow} = req.body;
+    const newDebt = [req.body.creator_id, req.body.person_id, req.body.sum, req.body.description, req.body.is_borrow];
     console.log('Put: ', newDebt);
-    connection.query('INSERT INTO debts (person_id, sum, description, is_borrow) VALUES (?, ?, ?, ?)', newDebt, function (err, rows) {
+    connection.query('INSERT INTO debts (creator_id, person_id, sum, description, is_borrow) VALUES (?, ?, ?, ?, ?)', newDebt, function (err, rows) {
         if (err) {
             console.log('Error while performing Query.');
         }
     });
     res.status(200).send();
-});*/
+});
 
 /*app.post('/login', (req, res) => {
     console.log('user login');
@@ -171,8 +212,8 @@ router.post('/signup', (req, res) => {
     res.end()
 });
 
-/*
-app.post('/close/:id', (req, res) => {
+
+app.post('/close', (req, res) => {
     const id = req.body.id;
     console.log('Close: ', id);
     connection.query('DELETE FROM debts WHERE id = ' + id, function (err, rows) {
@@ -183,5 +224,20 @@ app.post('/close/:id', (req, res) => {
     res.status(200).send();
     //res.redirect('back');
 });
-*/
+
+
+app.post('/addcontact', (req, res) => {
+    const creator_id = req.body.creator_id;
+    const contact_name = req.body.contact_name;
+    const newContact = [creator_id, contact_name];
+    console.log('Add contact: ', newContact);
+    connection.query('INSERT INTO contacts (creator_id, contact_name) VALUES (?, ?)', newContact , function (err, rows) {
+        if (err) {
+            console.log('Error while performing Query.');
+        }
+    });
+    res.status(200).send();
+    //res.redirect('back');
+});
+
 module.exports = app;

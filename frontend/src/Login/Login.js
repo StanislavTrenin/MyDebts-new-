@@ -53,7 +53,8 @@ class Login extends Component {
                     // update the state to redirect to home
                     localStorage.setItem('loggedIn', 'true');
                     localStorage.setItem('token', response.data.token);
-                    console.log('login');
+                    localStorage.setItem('id', response.data.id);
+                    console.log('login with id = '+response.data.id);
                     console.log('loggedIn = ' + localStorage.getItem('loggedIn'));
                     this.setState({
                         redirectTo: '/debts',

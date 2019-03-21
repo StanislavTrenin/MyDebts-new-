@@ -22,7 +22,8 @@ class Debts extends Component {
     async componentDidMount() {
         console.log('find debts with token = '+localStorage.getItem('token'));
         const questions = (await axios.post('http://192.168.33.10:8081/debts', {
-            token: localStorage.getItem('token')
+            token: localStorage.getItem('token'),
+            id: localStorage.getItem('id')
         })).data;
         this.setState({
             questions,
@@ -49,12 +50,14 @@ class Debts extends Component {
         this.setState({
             disabled: true,
         });
-
+        console.log('close debts with token = '+localStorage.getItem('token'));
         await axios.post('http://192.168.33.10:8081/close', {
+            token: localStorage.getItem('token'),
             id: id,
         });
 
-        this.props.history.push('/');
+        this.props.history.push('/debts');
+        //this.forceUpdate()
         window.location.reload(true);
     }
 
