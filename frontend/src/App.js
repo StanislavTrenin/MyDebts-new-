@@ -1,7 +1,5 @@
 import React, {Component} from 'react';
 import {Route, Link, Switch, Redirect} from 'react-router-dom';
-import Profile from "./profile";
-import Home from "./home";
 import {LocalStorage} from 'reactjs-localstorage';
 import PropTypes from 'prop-types'
 import NavBar from './NavBar/NavBar';
@@ -12,7 +10,18 @@ import Login from './Login/Login';
 import Signup from './Signup/Signup';
 import Contacts from './Contacts/Contacts';
 import Statistic from './Statistic/Statistic';
-import Tmp from './Tmp/Tmp';
+import Main from './Main/Main';
+import {library} from '@fortawesome/fontawesome-svg-core';
+import {faEnvelope, faKey} from '@fortawesome/free-solid-svg-icons';
+
+library.add(faEnvelope, faKey);
+
+window.addEventListener('unload', (event) => {
+    localStorage.setItem('loggedIn', 'false');
+    console.log('signout');
+    this.props.history.push('');
+});
+
 
 function isUserAuthenticated() {
     return localStorage.getItem('loggedIn') === 'true';
@@ -49,20 +58,9 @@ class App extends Component {
 
     constructor(props) {
         super(props);
-        //localStorage.setItem('loggedIn', 'false');
         isUserAuthenticated() ? (console.log('auth1')) : (console.log('fail1'));
 
-
-        //console.log('loggedIn = '+localStorage.getItem('loggedIn'));
-
     }
-
-    handleLogin = () => {
-        localStorage.setItem('loggedIn', 'true');
-        console.log('login');
-        isUserAuthenticated() ? (console.log('auth2')) : (console.log('fail2'));
-        console.log('loggedIn = ' + localStorage.getItem('loggedIn'));
-    };
 
     render() {
         const {state = {}} = this.props.location;
@@ -73,6 +71,7 @@ class App extends Component {
                 <div className="tabs">
                     {error && <div>ERROR: {error}</div>}
                     <NavBar/>
+                    <Route exact path='/' component={Main}/>
                     <Route exact path='/login' component={Login}/>
                     <Route exact path='/signup' component={Signup}/>
                     <PrivateRoute exact path='/debts' component={Debts}/>
@@ -80,7 +79,6 @@ class App extends Component {
                     <PrivateRoute exact path='/borrow' component={Borrow}/>
                     <PrivateRoute exact path='/statistic' component={Statistic}/>
                     <PrivateRoute exact path='/contacts' component={Contacts}/>
-                    <div>Some picture here</div>
                 </div>
             </div>
         );

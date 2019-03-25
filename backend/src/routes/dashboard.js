@@ -4,6 +4,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const auth = require('../libs/auth');
+const passwordHash = require('password-hash');
 //const cookieParser = require('cookie-parser');
 
 const verifyJWT_MW = require('../middleware');
@@ -35,29 +36,65 @@ router.post('/login', (req, res) => {
     console.log('user login with jwt');
     let {email, password} = req.body;
     console.log('email = ' + email + ' password = ' + password);
+    const newPassword = passwordHash.generate(password);
+    console.log('New password = '+newPassword);
 
-    connection.query('SELECT user_id, login, email FROM users WHERE login = ' + email + ' AND password = ' + password, function (err, rows) {
+    connection.query('SELECT user_id, login, email, password FROM users WHERE login = ' + email, function (err, rows) {
         if (err) {
             console.log('Error while performing Query.');
         } else {
 
             if(rows.length == 1) {
                 console.log('Res of sql = ' + JSON.stringify(rows));
+                if(passwordHash.verify(password, rows[0].password)) {
 
-                let data = JSON.stringify(rows);
+                    let data = JSON.stringify(rows);
 
-                auth.createJWToken({sessionData: data, maxAge: 3600}).then((result) => {
-                    //const token = req.token;
-                    console.log('after log in created token = ' + result);
-                    res.status(200).json({success: true, token: result, id: rows[0].user_id});
-                });
-
+                    auth.createJWToken({sessionData: data, maxAge: 3600}).then((result) => {
+                        //const token = req.token;
+                        console.log('after log in created token = ' + result);
+                        res.status(200).json({success: true, token: result, id: rows[0].user_id});
+                    });
+                }
             } else {
                 console.log('User does not exist!!!');
                 res.status(400).json({message: "User does not exist!!!"})
             }
         }
 
+    });
+
+
+});
+
+router.post('/signup', (req, res) => {
+    console.log('user signup');
+    const {login, email, password} = req.body;
+    const newPassword = passwordHash.generate(password);
+    console.log('New password = '+newPassword);
+    const newUser = [login, email, newPassword];
+    console.log('Put: ', newUser);
+
+    connection.query('SELECT COUNT(*) AS quantity FROM users WHERE login = '+login, function (err, rows) {
+        if (!err) {
+            console.log('quantity = '+rows[0].quantity);
+            if(rows[0].quantity === 0){
+                console.log('there');
+                connection.query('INSERT INTO users (login, email, password) VALUES (?, ?, ?)', newUser, function (err, rows) {
+                    if (!err) {
+                        console.log('there');
+                        res.status(200).json({success: true});
+                    } else {
+                        console.log('Error while performing Query.');
+                        res.status(400).json({message: "User already exist!!!"});
+                    }
+                });
+            } else {
+                res.status(400).json({message: "User already exist!!!"});
+            }
+        } else {
+            res.status(400).json({message: "User already exist!!!"});
+        }
     });
 
 
@@ -197,21 +234,6 @@ app.post('/takeMoney', (req, res) => {
     //req.session.login = req.body.login;
     res.end()
 });*/
-
-router.post('/signup', (req, res) => {
-    console.log('user signup');
-    const {login, email, password} = req.body;
-    const newUser = [login, email, password];
-    console.log('Put: ', newUser);
-    connection.query('INSERT INTO users (login, email, password) VALUES (?, ?, ?)', newUser, function (err, rows) {
-        if (err) {
-            console.log('Error while performing Query.');
-        }
-    });
-    //req.session.login = req.body.login;
-    res.end()
-});
-
 
 app.post('/close', (req, res) => {
     const id = req.body.id;

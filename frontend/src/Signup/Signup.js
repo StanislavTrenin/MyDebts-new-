@@ -17,7 +17,8 @@ class Signup extends Component {
             email: "",
             password: "",
             repeat: "",
-            redirectTo: null
+            redirectTo: null,
+            showError: 'hidden'
         };
     }
 
@@ -58,11 +59,18 @@ class Signup extends Component {
             }).catch(error => {
             console.log('signup error: ');
             console.log(error);
+            this.setState({
+                showError: 'visible'
+            });
 
         })
     };
 
     render() {
+        let signupError = <div style={{color: '#b32400', visibility: this.state.showError}}>
+            User with this logni already exist!!!
+        </div>;
+
         if (this.state.redirectTo) {
             //alert('lol');
             return <Redirect to={{pathname: this.state.redirectTo}}/>
@@ -120,6 +128,7 @@ class Signup extends Component {
                                         </Button>
                                     </Col>
                                 </Row>
+                                {signupError}
                             </Form>
                         </Col>
                         <Col></Col>
@@ -129,4 +138,5 @@ class Signup extends Component {
         }
     }
 }
+
 export default Signup

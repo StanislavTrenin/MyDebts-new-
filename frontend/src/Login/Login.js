@@ -54,7 +54,7 @@ class Login extends Component {
                     localStorage.setItem('loggedIn', 'true');
                     localStorage.setItem('token', response.data.token);
                     localStorage.setItem('id', response.data.id);
-                    console.log('login with id = '+response.data.id);
+                    console.log('login with id = ' + response.data.id);
                     console.log('loggedIn = ' + localStorage.getItem('loggedIn'));
                     this.setState({
                         redirectTo: '/debts',
@@ -66,9 +66,9 @@ class Login extends Component {
             console.log(error);
 
 
-                this.setState({
-                    showError: 'visible'
-                });
+            this.setState({
+                showError: 'visible'
+            });
 
             /*axios.post('http://192.168.33.10:8081/debts', {
                 token: localStorage.getItem('token')
@@ -87,7 +87,7 @@ class Login extends Component {
     };
 
     render() {
-        let loginError = <div style={{color: '#b32400', visibility: this.state.showError }}>
+        let loginError = <div style={{color: '#b32400', visibility: this.state.showError}}>
             Incorrect login or username!!!
         </div>;
 
