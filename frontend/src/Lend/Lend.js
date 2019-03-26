@@ -9,10 +9,12 @@ class Lend extends Component {
         super(props);
 
         this.state = {
-            disabled: false,
             person_id: 0,
             sum: 0,
             description: '',
+            showError: 'hidden',
+            showSumError: 'hidden',
+            isPersonChosen: false,
         };
     }
 
@@ -25,6 +27,7 @@ class Lend extends Component {
     updatePersonId = (selectedOption) => {
         this.setState({
             person_id: selectedOption.value,
+            isPersonChosen: true
         });
     };
 
@@ -35,8 +38,8 @@ class Lend extends Component {
     }
 
     async componentDidMount() {
-        console.log('find contacts with token = '+localStorage.getItem('token'));
-        const contacts = (await axios.post('http://192.168.33.10:8081/contacts', {
+        console.log('find contacts with token = ' + localStorage.getItem('token'));
+        const contacts = (await axios.post(process.env.REACT_APP_URL+'/contacts', {
             token: localStorage.getItem('token'),
             id: localStorage.getItem('id')
         })).data;
@@ -48,7 +51,7 @@ class Lend extends Component {
 
         //const contact_names = contacts.map((contact) => contact.contact_name);
 
-                    console.log('my contacts = '+this.state.contacts);
+        console.log('my contacts = ' + this.state.contacts);
 
 
     }
@@ -58,19 +61,41 @@ class Lend extends Component {
             disabled: true,
         });
 
-        await axios.post('http://192.168.33.10:8081/takeMoney', {
-            token: localStorage.getItem('token'),
-            creator_id: localStorage.getItem('id'),
-            person_id: this.state.person_id,
-            sum: this.state.sum,
-            description: this.state.description,
-            is_borrow: 0,
-        });
+        console.log('data = ' + this.state.person_id + ' ' + this.state.sum + ' ' + this.state.description);
+        console.log('length = ' + this.state.isPersonChosen + ' ' + this.state.sum.length);
 
-        this.props.history.push('/debts');
+        if (!isNaN(this.state.sum) && this.state.sum > 0) {
+            if (this.state.isPersonChosen > 0 && this.state.sum.length > 0) {
+                await axios.post(process.env.REACT_APP_URL+'/takeMoney', {
+                    token: localStorage.getItem('token'),
+                    creator_id: localStorage.getItem('id'),
+                    person_id: this.state.person_id,
+                    sum: this.state.sum,
+                    description: this.state.description,
+                    is_borrow: 0,
+                });
+
+                this.props.history.push('/debts');
+            } else {
+                this.setState({
+                    showError: 'visible'
+                });
+            }
+        } else {
+            this.setState({
+                showSumError: 'visible'
+            });
+        }
     }
 
     render() {
+        let lendError = <div style={{color: '#b32400', visibility: this.state.showError}}>
+            You have empty fields!!!
+        </div>;
+        let sumError = <div style={{color: '#b32400', visibility: this.state.showSumError}}>
+            Incorrect Sum!!! Please use only digits.
+        </div>;
+
         return (
             <div className="container">
                 <div className="row">
@@ -81,16 +106,16 @@ class Lend extends Component {
                                 <div className="form-group">
                                     <label htmlFor="exampleInputEmail1">Person:</label>
 
-                                        <Select
-                                            options={this.state.contacts}
-                                            onChange={this.updatePersonId}
-                                        />
+                                    <Select
+                                        options={this.state.contacts}
+                                        onChange={this.updatePersonId}
+                                    />
 
                                 </div>
                                 <div className="form-group">
                                     <label htmlFor="exampleInputEmail1">Sum:</label>
                                     <input
-                                        disabled={this.state.disabled}
+
                                         type="text"
                                         onBlur={(e) => {
                                             this.updateSum(e.target.value)
@@ -98,10 +123,10 @@ class Lend extends Component {
                                         className="form-control"
                                     />
                                 </div>
+
                                 <div className="form-group">
                                     <label htmlFor="exampleInputEmail1">Description:</label>
                                     <input
-                                        disabled={this.state.disabled}
                                         type="text"
                                         onBlur={(e) => {
                                             this.updateDescription(e.target.value)
@@ -109,8 +134,9 @@ class Lend extends Component {
                                         className="form-control"
                                     />
                                 </div>
+                                {lendError}
+                                {sumError}
                                 <button
-                                    disabled={this.state.disabled}
                                     className="btn btn-primary"
                                     onClick={() => {
                                         this.submit()

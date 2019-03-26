@@ -34,19 +34,20 @@ app.use(router);
 
 router.post('/login', (req, res) => {
     console.log('user login with jwt');
-    let {email, password} = req.body;
-    console.log('email = ' + email + ' password = ' + password);
+    let {login, password} = req.body;
+    console.log('email = ' + login + ' password = ' + password);
     const newPassword = passwordHash.generate(password);
-    console.log('New password = '+newPassword);
+    console.log('New password = ' + newPassword);
 
-    connection.query('SELECT user_id, login, email, password FROM users WHERE login = ' + email, function (err, rows) {
+    connection.query('SELECT user_id, login, email, password FROM users WHERE login = ?', login, function (err, rows) {
         if (err) {
             console.log('Error while performing Query.');
+            res.status(400).json({message: "User does not exist!!!"})
         } else {
 
-            if(rows.length == 1) {
+            if (rows.length === 1) {
                 console.log('Res of sql = ' + JSON.stringify(rows));
-                if(passwordHash.verify(password, rows[0].password)) {
+                if (passwordHash.verify(password, rows[0].password)) {
 
                     let data = JSON.stringify(rows);
 
@@ -55,6 +56,9 @@ router.post('/login', (req, res) => {
                         console.log('after log in created token = ' + result);
                         res.status(200).json({success: true, token: result, id: rows[0].user_id});
                     });
+                } else {
+                    console.log('User does not exist!!!');
+                    res.status(400).json({message: "User does not exist!!!"})
                 }
             } else {
                 console.log('User does not exist!!!');
@@ -71,14 +75,14 @@ router.post('/signup', (req, res) => {
     console.log('user signup');
     const {login, email, password} = req.body;
     const newPassword = passwordHash.generate(password);
-    console.log('New password = '+newPassword);
+    console.log('New password = ' + newPassword);
     const newUser = [login, email, newPassword];
-    console.log('Put: ', newUser);
+    console.log('Put: ', newUser + ' ' + login);
 
-    connection.query('SELECT COUNT(*) AS quantity FROM users WHERE login = '+login, function (err, rows) {
+    connection.query('SELECT COUNT(*) AS quantity FROM users WHERE login = ?', login, function (err, rows) {
         if (!err) {
-            console.log('quantity = '+rows[0].quantity);
-            if(rows[0].quantity === 0){
+            console.log('quantity = ' + rows[0].quantity);
+            if (rows[0].quantity === 0) {
                 console.log('there');
                 connection.query('INSERT INTO users (login, email, password) VALUES (?, ?, ?)', newUser, function (err, rows) {
                     if (!err) {
@@ -93,6 +97,7 @@ router.post('/signup', (req, res) => {
                 res.status(400).json({message: "User already exist!!!"});
             }
         } else {
+            console.log('wtf?!!!!');
             res.status(400).json({message: "User already exist!!!"});
         }
     });
@@ -145,7 +150,7 @@ app.all('*', (req, res, next) => {
 });*/
 
 app.post('/debts', (req, res, next) => {
-    connection.query('SELECT * from debts WHERE creator_id = '+req.body.id, function (err, rows, fields) {
+    connection.query('SELECT * from debts WHERE creator_id = ?', req.body.id, function (err, rows, fields) {
         if (!err) {
             console.log('The solution is: ', rows);
             //const qs = rows;
@@ -160,7 +165,7 @@ app.post('/debts', (req, res, next) => {
 });
 
 app.post('/contacts', (req, res, next) => {
-    connection.query('SELECT * from contacts WHERE creator_id = '+req.body.id, function (err, rows, fields) {
+    connection.query('SELECT * from contacts WHERE creator_id = ?', req.body.id, function (err, rows, fields) {
         if (!err) {
             console.log('The solution is: ', rows);
             //const qs = rows;
@@ -175,17 +180,17 @@ app.post('/contacts', (req, res, next) => {
 });
 
 app.post('/getStat', (req, res, next) => {
-    connection.query('SELECT SUM(sum) AS lend FROM debts WHERE creator_id = '+req.body.creator_id+' AND person_id = '+req.body.person_id+' AND is_borrow = 0', function (err, rows, fields) {
+    connection.query('SELECT SUM(sum) AS lend FROM debts WHERE creator_id = ' + req.body.creator_id + ' AND is_borrow = 0', function (err, rows, fields) {
         if (!err) {
             console.log('lend: ', rows[0].lend);
             const lend = (rows[0].lend === null ? 0 : rows[0].lend);
             //const qs = rows;
-            connection.query('SELECT SUM(sum) as borrow FROM debts WHERE creator_id = '+req.body.creator_id+' AND person_id = '+req.body.person_id+' AND is_borrow = 1', function (err, rows1, fields) {
+            connection.query('SELECT SUM(sum) as borrow FROM debts WHERE creator_id = ' + req.body.creator_id + ' AND is_borrow = 1', function (err, rows1, fields) {
                 if (!err) {
                     console.log('borrow: ', rows1[0].borrow);
                     //const qs = rows;
                     const borrow = (rows1[0].borrow === null ? 0 : rows1[0].borrow);
-                    console.log('lend and borrow: '+ lend+' '+borrow);
+                    console.log('lend and borrow: ' + lend + ' ' + borrow);
                     res.send({lend: lend, borrow: borrow});
                 }
                 else {
@@ -201,6 +206,32 @@ app.post('/getStat', (req, res, next) => {
 
 });
 
+app.post('/getStatByPerson', (req, res, next) => {
+    connection.query('SELECT SUM(sum) AS lend FROM debts WHERE creator_id = ' + req.body.creator_id + ' AND person_id = ' + req.body.person_id + ' AND is_borrow = 0', function (err, rows, fields) {
+        if (!err) {
+            console.log('lend: ', rows[0].lend);
+            const lend = (rows[0].lend === null ? 0 : rows[0].lend);
+            //const qs = rows;
+            connection.query('SELECT SUM(sum) as borrow FROM debts WHERE creator_id = ' + req.body.creator_id + ' AND person_id = ' + req.body.person_id + ' AND is_borrow = 1', function (err, rows1, fields) {
+                if (!err) {
+                    console.log('borrow: ', rows1[0].borrow);
+                    //const qs = rows;
+                    const borrow = (rows1[0].borrow === null ? 0 : rows1[0].borrow);
+                    console.log('lend and borrow: ' + lend + ' ' + borrow);
+                    res.send({lend: lend, borrow: borrow});
+                }
+                else {
+                    console.log('Error while performing Query.');
+                }
+            });
+        }
+        else {
+            console.log('Error while performing Query.');
+        }
+    });
+
+
+});
 
 
 app.post('/takeMoney', (req, res) => {
@@ -238,11 +269,31 @@ app.post('/takeMoney', (req, res) => {
 app.post('/close', (req, res) => {
     const id = req.body.id;
     console.log('Close: ', id);
-    connection.query('DELETE FROM debts WHERE id = ' + id, function (err, rows) {
+    connection.query('DELETE FROM debts WHERE id = ?', id, function (err, rows) {
         if (err) {
             console.log('Error while performing Query.');
         }
     });
+    res.status(200).send();
+    //res.redirect('back');
+});
+
+
+app.post('/deleteContact', (req, res) => {
+    const id = req.body.id;
+    console.log('Delete: ', id);
+    connection.query('DELETE FROM contacts WHERE id = ?', id, function (err, rows) {
+        if (err) {
+            console.log('Error while performing Query.');
+        } else {
+            connection.query('DELETE FROM debts WHERE person_id = ?', id, function (err, rows) {
+                if (err) {
+                    console.log('Error while performing Query.');
+                }
+            });
+        }
+    });
+
     res.status(200).send();
     //res.redirect('back');
 });
@@ -253,7 +304,7 @@ app.post('/addcontact', (req, res) => {
     const contact_name = req.body.contact_name;
     const newContact = [creator_id, contact_name];
     console.log('Add contact: ', newContact);
-    connection.query('INSERT INTO contacts (creator_id, contact_name) VALUES (?, ?)', newContact , function (err, rows) {
+    connection.query('INSERT INTO contacts (creator_id, contact_name) VALUES (?, ?)', newContact, function (err, rows) {
         if (err) {
             console.log('Error while performing Query.');
         }

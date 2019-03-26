@@ -14,6 +14,7 @@ import Main from './Main/Main';
 import {library} from '@fortawesome/fontawesome-svg-core';
 import {faEnvelope, faKey} from '@fortawesome/free-solid-svg-icons';
 
+require('dotenv').config();
 library.add(faEnvelope, faKey);
 
 window.addEventListener('unload', (event) => {
@@ -22,6 +23,7 @@ window.addEventListener('unload', (event) => {
     this.props.history.push('');
 });
 
+// react redux,react-redux, redux-saga
 
 function isUserAuthenticated() {
     return localStorage.getItem('loggedIn') === 'true';
@@ -58,6 +60,7 @@ class App extends Component {
 
     constructor(props) {
         super(props);
+        console.log('url = '+process.env.REACT_APP_URL);
         isUserAuthenticated() ? (console.log('auth1')) : (console.log('fail1'));
 
     }

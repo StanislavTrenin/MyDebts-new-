@@ -14,7 +14,9 @@ class Lend extends Component {
             sum: 0,
             description: '',
             lend: null,
+            lendTotal: null,
             borrow: null,
+            borrowTotal: null,
         };
     }
 
@@ -28,7 +30,7 @@ class Lend extends Component {
 
     async componentDidMount() {
         console.log('find contacts with token = ' + localStorage.getItem('token'));
-        const contacts = (await axios.post('http://192.168.33.10:8081/contacts', {
+        const contacts = (await axios.post(process.env.REACT_APP_URL+'/contacts', {
             token: localStorage.getItem('token'),
             id: localStorage.getItem('id')
         })).data;
@@ -42,12 +44,24 @@ class Lend extends Component {
 
         console.log('my contacts = ' + this.state.contacts);
 
+        await axios.post(process.env.REACT_APP_URL+'/getStat', {
+            token: localStorage.getItem('token'),
+            creator_id: localStorage.getItem('id'),
+        }).then(rez => {
+                console.log('rez = ' + rez.data.lend + ' ' + rez.data.borrow);
+                this.setState({
+                    lendTotal: rez.data.lend,
+                    borrowTotal: rez.data.borrow,
+                })
+            }
+        );
+
 
     }
 
     async submit() {
 
-        await axios.post('http://192.168.33.10:8081/getStat', {
+        await axios.post(process.env.REACT_APP_URL+'/getStatByPerson', {
             token: localStorage.getItem('token'),
             creator_id: localStorage.getItem('id'),
             person_id: this.state.person_id,
@@ -68,6 +82,28 @@ class Lend extends Component {
             <div className="container">
                 <div className="row">
                     <div className="col-12">
+                        <div className="card border-primary">
+                            <div className="card-header">Your total statistic</div>
+                            <div className="card-body text-left">
+                                <div>
+                                    {(this.state.lendTotal !== null && this.state.borrowTotal !== null &&
+                                        <div>
+                                            <div className="card-header">I lend totla</div>
+                                            <div className="card-body text-left">
+                                                {this.state.lendTotal}
+                                            </div>
+                                            <div className="card-header">I borrow total</div>
+                                            <div className="card-body text-left">
+                                                {this.state.borrowTotal}
+                                            </div>
+
+                                        </div>
+
+
+                                    )}
+                                </div>
+                            </div>
+                        </div>
                         <div className="card border-primary">
                             <div className="card-header">Get statistics by person</div>
                             <div className="card-body text-left">

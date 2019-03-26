@@ -18,13 +18,14 @@ class Signup extends Component {
             password: "",
             repeat: "",
             redirectTo: null,
-            showError: 'hidden'
+            showError: 'hidden',
+            showPasswordError: 'hidden',
         };
     }
 
-    validateForm() {
+    /*validateForm() {
         return this.state.login.length > 0 && this.state.password.length > 0 && this.state.password === this.state.repeat;
-    }
+    }*/
 
     handleChange = event => {
         this.setState({
@@ -35,40 +36,50 @@ class Signup extends Component {
     handleSubmit = event => {
         event.preventDefault();
         console.log('handle submit ' + this.state.login + ' ' + this.state.password);
-        axios
-            .post('http://192.168.33.10:8081/signup', {
-                login: this.state.login,
-                email: this.state.email,
-                password: this.state.password,
-            })
-            .then(response => {
-                console.log('login response: ');
-                console.log(response);
-                if (response.status === 200) {
-                    //alert('success!!!');
-                    // update App.js state
-                    /*this.props.updateUser({
-                        loggedIn: true,
-                        login: response.data.login
-                    });*/
-                    // update the state to redirect to home
-                    this.setState({
-                        redirectTo: '/'
-                    })
-                }
-            }).catch(error => {
-            console.log('signup error: ');
-            console.log(error);
-            this.setState({
-                showError: 'visible'
-            });
+        if(this.state.password === this.state.repeat) {
+            axios
+                .post(process.env.REACT_APP_URL+'/signup', {
+                    login: this.state.login,
+                    email: this.state.email,
+                    password: this.state.password,
+                })
+                .then(response => {
+                    console.log('login response: ');
+                    console.log(response);
+                    if (response.status === 200) {
+                        //alert('success!!!');
+                        // update App.js state
+                        /*this.props.updateUser({
+                            loggedIn: true,
+                            login: response.data.login
+                        });*/
+                        // update the state to redirect to home
+                        this.setState({
+                            redirectTo: '/'
+                        })
+                    }
+                }).catch(error => {
+                console.log('signup error: ');
+                console.log(error);
+                this.setState({
+                    showError: 'visible'
+                });
 
-        })
+            })
+        } else {
+            this.setState({
+                showPasswordError: 'visible'
+            })
+        }
     };
 
     render() {
         let signupError = <div style={{color: '#b32400', visibility: this.state.showError}}>
             User with this logni already exist!!!
+        </div>;
+
+        let passwordError = <div style={{color: '#b32400', visibility: this.state.showPasswordError}}>
+            You repeat incorrect password!!!
         </div>;
 
         if (this.state.redirectTo) {
@@ -108,7 +119,7 @@ class Signup extends Component {
                                     />
                                 </Form.Group>
                                 <Form.Group controlId="repeat">
-                                    <Form.Label>repeat password</Form.Label>
+                                    <Form.Label>Repeat password</Form.Label>
                                     <Form.Control
                                         value={this.state.repeat}
                                         onChange={this.handleChange}
@@ -119,7 +130,7 @@ class Signup extends Component {
                                     <Col>
                                         <Button
                                             block
-                                            disabled={!this.validateForm()}
+                                            //disabled={!this.validateForm()}
                                             type="submit"
                                             variant="primary"
                                             className="float-lg-right"
@@ -129,6 +140,7 @@ class Signup extends Component {
                                     </Col>
                                 </Row>
                                 {signupError}
+                                {passwordError}
                             </Form>
                         </Col>
                         <Col></Col>

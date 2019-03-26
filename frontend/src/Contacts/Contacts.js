@@ -4,26 +4,31 @@ import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 import {withRouter} from "react-router-dom";
 
+require('dotenv').config();
 
 
 class Contacts extends Component {
     constructor(props, context) {
         super(props, context);
         this.handleClose = this.handleClose.bind(this);
-
+        this.handleCloseDelete = this.handleCloseDelete.bind(this);
 
 
         this.state = {
             id: 0,
             contacts: null,
             show: false,
+            showDelete: false,
             name: null,
+            showError: 'hidden',
+            showClose: 'hidden',
+            reRender: false
         };
     }
 
     async componentDidMount() {
-        console.log('find contacts with token = '+localStorage.getItem('token'));
-        const contacts = (await axios.post('http://192.168.33.10:8081/contacts', {
+        console.log('find contacts with token = ' + localStorage.getItem('token'));
+        const contacts = (await axios.post(process.env.REACT_APP_URL + '/contacts', {
             token: localStorage.getItem('token'),
             id: localStorage.getItem('id')
         })).data;
@@ -33,13 +38,29 @@ class Contacts extends Component {
 
     }
 
-    handleClose() {
-        this.setState({ show: false });
+
+    async componentDidUpdate(prevProps, prevState) {
+        if (prevState.reRender !== this.state.reRender) {
+            console.log('find contacts with token = ' + localStorage.getItem('token'));
+            const contacts = (await axios.post(process.env.REACT_APP_URL + '/contacts', {
+                token: localStorage.getItem('token'),
+                id: localStorage.getItem('id')
+            })).data;
+            this.setState({
+                contacts,
+                reRender: false
+            });
+        }
     }
+
+    handleClose() {
+        this.setState({show: false});
+    }
+
 
     handleShow() {
         //this.setState({id: id});
-        this.setState({ show: true });
+        this.setState({show: true});
     }
 
     updateName(value) {
@@ -53,19 +74,61 @@ class Contacts extends Component {
         this.setState({
             disabled: true,
         });
-        console.log('add contact with token = '+localStorage.getItem('token'));
-        await axios.post('http://192.168.33.10:8081/addcontact', {
+        if (this.state.name.length > 0) {
+            console.log('add contact with token = ' + localStorage.getItem('token'));
+            await axios.post(process.env.REACT_APP_URL + '/addcontact', {
+                token: localStorage.getItem('token'),
+                creator_id: localStorage.getItem('id'),
+                contact_name: name,
+            });
+
+            this.setState({
+                show:false,
+                reRender: true
+            })
+            //this.props.history.push('/');
+        } else {
+            this.setState({
+                showError: 'visible'
+            });
+        }
+
+    }
+
+    async delete(id) {
+        this.setState({
+            disabled: true,
+        });
+        console.log('close user with token = ' + localStorage.getItem('token'));
+        await axios.post(process.env.REACT_APP_URL + '/deleteContact', {
             token: localStorage.getItem('token'),
-            creator_id: localStorage.getItem('id'),
-            contact_name: name,
+            id: id,
         });
 
-        this.props.history.push('/contacts');
+        this.setState({
+            showDelete: false,
+            reRender: true
+        })
+        //this.props.history.push('/contacts');
         //this.forceUpdate()
-        window.location.reload(true);
+        //window.location.reload(true);
+    }
+
+    handleShowDelete(id) {
+        this.setState({id: id});
+        this.setState({showDelete: true});
+
+
+    }
+
+    handleCloseDelete() {
+        this.setState({showDelete: false});
     }
 
     render() {
+        let emptyError = <div style={{color: '#b32400', visibility: this.state.showError}}>
+            You name field is empty !!!
+        </div>;
         return (
             <div className="container">
                 <div className="row">
@@ -77,6 +140,10 @@ class Contacts extends Component {
                                 <div className="card text-white bg-success mb-3">
                                     <div className="card-header">
                                         {contacts.contact_name}
+                                        <Button variant="primary" className="float-lg-right"
+                                                onClick={this.handleShowDelete.bind(this, contacts.id)}>
+                                            Delete
+                                        </Button>
                                     </div>
                                 </div>
                             </div>
@@ -85,6 +152,7 @@ class Contacts extends Component {
                     <div>
                         <Button onClick={this.handleShow.bind(this)}>+</Button>
                     </div>
+
                     <Modal show={this.state.show} onHide={this.handleClose}>
                         <Modal.Header closeButton>
                             <Modal.Title>Adding Contact</Modal.Title>
@@ -92,13 +160,16 @@ class Contacts extends Component {
                         <Modal.Body>Please enter name for your new contact</Modal.Body>
                         <div className="form-group">
                             <input
-                                disabled={this.state.disabled}
+
                                 type="text"
                                 onBlur={(e) => {
                                     this.updateName(e.target.value)
                                 }}
                                 className="form-control"
                             />
+                            <div style={{color: '#b32400', visibility: this.state.showError}}>
+                                You name field is empty !!!
+                            </div>
                         </div>
                         <Modal.Footer>
                             <Button variant="secondary" onClick={this.handleClose}>
@@ -111,6 +182,24 @@ class Contacts extends Component {
                             </Button>
                         </Modal.Footer>
                     </Modal>
+
+                    <Modal show={this.state.showDelete} onHide={this.handleCloseDelete}>
+                        <Modal.Header closeButton>
+                            <Modal.Title>Closing debt</Modal.Title>
+                        </Modal.Header>
+                        <Modal.Body>Are you sure want close this debt?</Modal.Body>
+                        <Modal.Footer>
+                            <Button variant="secondary" onClick={this.handleCloseDelete}>
+                                No
+                            </Button>
+                            <Button variant="primary" onClick={() => {
+                                this.delete(this.state.id)
+                            }}>
+                                Yes
+                            </Button>
+                        </Modal.Footer>
+                    </Modal>
+
                 </div>
             </div>
         )
