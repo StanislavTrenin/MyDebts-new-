@@ -9,4 +9,10 @@ frontend/node_modules
 frontend/README.ms
 frontend/package-lock.json
 frontend/package.json
-
+frontendredux/.env
+frontendredux/.idea/
+frontendredux/node_modules
+frontendredux/README.ms
+frontendredux/package-lock.json
+frontendredux/package.json
+react-redux-registration-login-example
